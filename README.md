@@ -17,7 +17,13 @@ Vagrantfile example
       end
     
       config.vm.network "private_network", ip: "192.168.50.4"
-      
+      config.vm.network :forwarded_port, guest: 3000, host: 3000
+      config.vm.network :forwarded_port, guest: 8080, host: 8080
+      config.vm.network :forwarded_port, guest: 5678, host: 5678
+      config.vm.network :forwarded_port, guest: 8888, host: 8888
+      config.vm.network :forwarded_port, guest: 4003, host: 4003
+      config.vm.network :forwarded_port, guest: 4000, host: 4000
+          
       config.vm.synced_folder "~/proj/", "/proj/", nfs: true
       config.ssh.forward_agent = true
     end
