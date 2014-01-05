@@ -19,7 +19,10 @@
         - redis-server
         - mysql-server
         - mysql-client
-        - libcurl-dev
+        - libcurl4-openssl-dev
+        - libmysql-ruby
+        - libmysqlclient-dev
+        - libpq-dev
 
     - name: rvm install test
       shell: curl -sSL https://get.rvm.io | bash -s stable --ruby --autolibs=enabled
