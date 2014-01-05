@@ -23,6 +23,7 @@
         - libmysql-ruby
         - libmysqlclient-dev
         - libpq-dev
+        - libxslt1-dev
 
     - name: rvm install test
       shell: curl -sSL https://get.rvm.io | bash -s stable --ruby --autolibs=enabled
