@@ -24,7 +24,7 @@ Vagrantfile example
       config.vm.network :forwarded_port, guest: 4003, host: 4003
       config.vm.network :forwarded_port, guest: 4000, host: 4000
           
-      config.vm.synced_folder "~/proj/", "/proj/", nfs: true
+      config.vm.synced_folder "~/proj/", "/home/vagrant/proj/", nfs: true
       config.ssh.forward_agent = true
     end
 
