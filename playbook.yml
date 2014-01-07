@@ -3,22 +3,14 @@
   hosts: all
 
   vars:
-    postgresql:
-      version: 9.1
+    postgresql_recreate_cluster: false
+    # postgresql.conf settings
+    postgresql_configuration_server_listen_port: 5432
+
+  roles:
+    - zzet.postgresql
 
   tasks:
-
-    - name: add postgres repositories
-      sudo: true
-      lineinfile:
-        dest=/etc/apt/sources.list
-        line="deb http://apt.postgresql.org/pub/repos/apt/ squeeze-pgdg main"
-        backup=yes
-        insertafter=EOF
-
-    - name: pg keys
-      shell: wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-      sudo: true
 
     - name: apt update
       apt: update_cache=yes cache_valid_time=3600
@@ -32,7 +24,6 @@
         - vim
         - git
         - runit
-        - postgresql-{{ postgresql.version }}
         - redis-server
         - mysql-server
         - mysql-client
@@ -45,16 +36,3 @@
     - name: rvm install test
       shell: curl -sSL https://get.rvm.io | bash -s stable --ruby --autolibs=enabled
         creates=~/.rvm/rubies/
-
-    - name: make postgres user as god
-      lineinfile:
-        dest=/etc/postgresql/{{ postgresql.version }}/main/pg_hba.conf
-        regexp=".*local.*all.*postgres.*peer.*"
-        line="local all postgres trust"
-        state=present
-        backup=yes
-      sudo: true
-
-    - name: restart postgresql
-      service: name=postgresql state=restarted
-      sudo: true
