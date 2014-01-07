@@ -34,5 +34,5 @@
         - libxslt1-dev
 
     - name: rvm install test
-      shell: curl -sSL https://get.rvm.io | bash -s stable --ruby --autolibs=enabled
-        creates=~/.rvm/rubies/
+      shell: curl -sSL https://get.rvm.io | bash -s stable --ruby=2.0.0 --autolibs=enabled
+        creates=~/.rvm/rubies/default/
