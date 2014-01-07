@@ -3,6 +3,7 @@
   hosts: all
 
   vars:
+    ruby_version: 2.0.0
     postgresql_recreate_cluster: false
     # postgresql.conf settings
     postgresql_configuration_server_listen_port: 5432
@@ -34,5 +35,5 @@
         - libxslt1-dev
 
     - name: rvm install test
-      shell: curl -sSL https://get.rvm.io | bash -s stable --ruby=2.0.0 --autolibs=enabled
+      shell: curl -sSL https://get.rvm.io | bash -s stable --ruby={{ruby_version}} --autolibs=enabled
         creates=~/.rvm/rubies/default/
