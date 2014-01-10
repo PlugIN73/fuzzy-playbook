@@ -30,7 +30,13 @@
         - libmysqlclient-dev
         - libpq-dev
         - libxslt1-dev
+        - htop
+        - strace
 
     - name: rvm install
       shell: curl -sSL https://get.rvm.io | bash -s stable --ruby={{ruby_version}} --autolibs=enabled
         creates=~/.rvm/rubies/default/
+
+    - name: git flow install
+      shell: wget --no-check-certificate -q  https://raw.github.com/petervanderdoes/gitflow/develop/contrib/gitflow-installer.sh  && bash gitflow-installer.sh install stable; rm gitflow-installer.sh
+      sudo: true
