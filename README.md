@@ -1,6 +1,8 @@
 fuzzy-playbook
 ==============
 
+Same for many rails projects
+
 Vagrantfile example
 ==============
 
