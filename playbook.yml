@@ -4,9 +4,16 @@
 
   vars:
     ruby_version: 2.0.0
+    system:
+      username: vagrant
 
-  roles:
-    - zzet.postgresql
+    erlang:
+      version: r16b03
+      version_big: R16B03
+
+    handgun:
+      path: /home/vagrant/handgun
+      repo_url: git://git.undev.cc/renginejs/handgun.git
 
   tasks:
 
@@ -40,3 +47,61 @@
     - name: git flow install
       shell: wget --no-check-certificate -q  https://raw.github.com/petervanderdoes/gitflow/develop/contrib/gitflow-installer.sh  && bash gitflow-installer.sh install stable; rm gitflow-installer.sh
       sudo: true
+
+        # Install erlang
+    -
+      name: setup kerl
+      sudo: true
+      shell:
+        curl -O https://raw.github.com/spawngrid/kerl/master/kerl > kerl
+        && chmod +x kerl
+        && cp kerl /usr/local/bin
+        creates=/usr/local/bin/kerl
+    -
+      name: install erlang requirements
+      apt: pkg=libncurses5-dev state=installed
+      sudo: true
+    -
+      name: setup erlang
+      shell:
+        kerl build {{erlang.version_big}} {{erlang.version}}
+        && kerl install {{erlang.version}} ~/.kerl/erlangs/{{erlang.version}}
+        creates=~/.kerl/erlangs/{{erlang.version}}
+    -
+      name: activate erlang
+      lineinfile:
+        dest=~/.bashrc
+        line=". ~/.kerl/erlangs/{{erlang.version}}/activate"
+        create=yes
+        state=present
+        backup=yes
+        insertafter=EOF
+
+    # Install node.js
+    -
+      name: add repository for nodejs
+      sudo: true
+      apt_repository: repo='ppa:chris-lea/node.js' update_cache=yes
+    -
+      name: install nodejs
+      apt: pkg=nodejs state=installed
+      sudo: true
+
+    # Install handgun
+    -
+      name: clone handgun from repository
+      git: repo={{ handgun.repo_url }}
+           dest={{ handgun.path }}
+    -
+      name: compile handgun
+      shell: . ~/.kerl/erlangs/{{erlang.version}}/activate
+        && erl -version && make chdir={{ handgun.path }}
+    -
+      name: activate hangun
+      lineinfile:
+        dest=~/.bashrc
+        line="alias handgun='{{handgun.path}}/bin/run'"
+        state=present
+        create=yes
+        backup=yes
+        insertafter=EOF
