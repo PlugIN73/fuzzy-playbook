@@ -39,21 +39,24 @@
         - libxslt1-dev
         - htop
         - strace
+        - python-pycurl
 
     - name: rvm install
       shell: curl -sSL https://get.rvm.io | bash -s stable --ruby={{ruby_version}} --autolibs=enabled
         creates=~/.rvm/rubies/default/
 
     - name: git flow install
-      shell: wget --no-check-certificate -q  https://raw.github.com/petervanderdoes/gitflow/develop/contrib/gitflow-installer.sh  && bash gitflow-installer.sh install stable; rm gitflow-installer.sh
+      shell: wget --no-check-certificate -q  https://raw.github.com/petervanderdoes/gitflow/develop/contrib/gitflow-installer.sh
+             && bash gitflow-installer.sh install stable; rm gitflow-installer.sh
+             creates=~{{system.username}}/gitflow/.git/
       sudo: true
 
-        # Install erlang
+  # Install erlang
     -
       name: setup kerl
       sudo: true
       shell:
-        curl -O https://raw.github.com/spawngrid/kerl/master/kerl > kerl
+        curl -O https://raw.githubusercontent.com/spawngrid/kerl/master/kerl
         && chmod +x kerl
         && cp kerl /usr/local/bin
         creates=/usr/local/bin/kerl
@@ -65,18 +68,17 @@
       name: setup erlang
       shell:
         kerl build {{erlang.version_big}} {{erlang.version}}
-        && kerl install {{erlang.version}} ~/.kerl/erlangs/{{erlang.version}}
-        creates=~/.kerl/erlangs/{{erlang.version}}
+        && kerl install {{erlang.version}} ~{{ system.username }}/.kerl/erlangs/{{erlang.version}}
+        creates=~{{ system.username }}/.kerl/erlangs/{{erlang.version}}
     -
       name: activate erlang
       lineinfile:
-        dest=~/.bashrc
-        line=". ~/.kerl/erlangs/{{erlang.version}}/activate"
+        dest=~{{ system.username }}/.bashrc
+        line=". ~{{ system.username }}/.kerl/erlangs/{{erlang.version}}/activate"
         create=yes
         state=present
         backup=yes
         insertafter=EOF
-
     # Install node.js
     -
       name: add repository for nodejs
@@ -86,22 +88,33 @@
       name: install nodejs
       apt: pkg=nodejs state=installed
       sudo: true
-
     # Install handgun
     -
       name: clone handgun from repository
       git: repo={{ handgun.repo_url }}
            dest={{ handgun.path }}
+           accept_hostkey=yes
     -
       name: compile handgun
-      shell: . ~/.kerl/erlangs/{{erlang.version}}/activate
+      shell: . ~{{ system.username }}/.kerl/erlangs/{{erlang.version}}/activate
         && erl -version && make chdir={{ handgun.path }}
     -
       name: activate hangun
       lineinfile:
-        dest=~/.bashrc
+        dest=~{{ system.username }}/.bashrc
         line="alias handgun='{{handgun.path}}/bin/run'"
         state=present
         create=yes
         backup=yes
         insertafter=EOF
+
+  handlers:
+    -
+      name: restart postgresql
+      sudo: true
+      service: name=postgresql state=restarted
+    -
+      name: reload nginx
+      sudo: true
+      service: name=nginx state=reloaded
+
