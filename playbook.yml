@@ -1,8 +1,14 @@
 ---
 -
   hosts: all
-
   vars:
+
+    oracle_installer_key: oracle-java7-installer
+    oracle_license_key: accepted-oracle-license-v1-1
+    java_versions: oracle-jdk7-installer
+
+    leiningen_version: '2.3.4'
+
     ruby_version: 2.0.0
     system:
       username: vagrant
@@ -16,6 +22,20 @@
       repo_url: git://git.undev.cc/renginejs/handgun.git
 
   tasks:
+    - name: Setup oracle java deb repo
+      sudo: true
+      apt_repository: repo="deb http://ppa.launchpad.net/webupd8team/java/ubuntu precise main" update_cache=yes
+      when: ansible_distribution in [ 'Ubuntu' ]
+
+    - name: Accept Oracle license
+      sudo: true
+      debconf: name="{{oracle_installer_key}}" question='shared/{{oracle_license_key}}' value='true' vtype='select'
+
+    - name: Install Oracle Java
+      apt: pkg={{ item }} update-cache=yes state=latest force=true
+      sudo: true
+      when: item|search("^oracle")
+      with_items: java_versions
 
     - name: apt update
       apt: update_cache=yes cache_valid_time=3600
@@ -26,7 +46,7 @@
       sudo: true
       with_items:
         - curl
-        - vim
+        - vim-gnome
         - git
         - runit
         - redis-server
@@ -40,6 +60,24 @@
         - htop
         - strace
         - python-pycurl
+
+    - name: download leiningen
+      sudo: true
+      get_url:  url=https://raw.github.com/technomancy/leiningen/{{leiningen_version}}/bin/lein 
+                dest=/usr/local/bin/lein-{{leiningen_version}}
+                mode=0755
+
+    - name: link to main version of leinigen
+      sudo: true
+      file: dest=/usr/local/bin/lein
+            src=/usr/local/bin/lein-{{leiningen_version}}
+            state=link
+
+    - name: root may execute leiningen 
+      sudo: true
+      lineinfile: line='export LEIN_ROOT=True'
+                  state=present
+                  dest=~root/.bashrc
 
     - name: rvm install
       shell: curl -sSL https://get.rvm.io | bash -s stable --ruby={{ruby_version}} --autolibs=enabled
